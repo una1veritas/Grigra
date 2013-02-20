@@ -11,3 +11,11 @@
 *.lai
 *.la
 *.a
+
+#Eclipse auto makefile
+*.d
+
+#LaTeX/TeX working file
+*.aux
+*.log
+*.dvi
