@@ -52,9 +52,9 @@ void gridlayout::PointSetProxy<TYPE>::print(std::ostream &sOut) {
 
 template<typename TYPE>
 void gridlayout::PointSetProxy<TYPE>::print(TYPE *out_p, const size_t maxlen) {
-  int k=0;
+  size_t k=0;
   for(typename std::vector<Point<TYPE> >::iterator i = set_p->begin();
-      i != set_p->end() || k<maxlen;
+      i != set_p->end() || k < maxlen;
       ++i, k+=2)
   {
     out_p[k] = i->getX();

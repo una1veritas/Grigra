@@ -12,56 +12,56 @@
 namespace gridlayout {
   template<typename TYPE>
   class PointSet : public std::vector<Point<TYPE> > {
+
+    // Internal Type
+    typedef std::vector<Point<TYPE> > super;
     typedef Point<TYPE> POINT_T;
-    typedef typename std::vector<POINT_T>::iterator iterator;
+    typedef typename super::iterator iterator;
+
   public:
-    PointSet() : std::vector<POINT_T>() {}
+    PointSet() : super() {}
     ~PointSet() {}
     
-    PointSet(std::istream &in) : std::vector<POINT_T>() {
+    PointSet(std::istream &in) : super() {
       TYPE x, y;
       in >> x;
       in >> y;
       while(!in.eof()) {
-        std::vector<POINT_T>::push_back(POINT_T(x,y));
+        super::push_back(POINT_T(x,y));
         in >> x;
         in >> y;
       }
     }
 
-    PointSet(PointSet &set) : std::vector<POINT_T>(set.size()) {
-      for(int i=0; i<set.size(); ++i) {
-        std::vector<POINT_T>::at(i) = set[i];
+    PointSet(PointSet &set) : super(set.size()) {
+      for(size_t i=0; i<set.size(); ++i) {
+        super::at(i) = set[i];
       }
     }
     
-    PointSet(int size) : std::vector<POINT_T>(size) {}
+    PointSet(size_t size) : super(size) {}
     void print(std::ostream &out) {
-      for(iterator i = std::vector<POINT_T>::begin();
-          i != std::vector<POINT_T>::end();
-          i++)
-      {
+      for(iterator i = super::begin(); i != super::end(); i++) {
         i->print(out);
         out << std::endl;
       }
     }
     
-    PointSet(const TYPE *array, const size_t maxlen) : std::vector<POINT_T>(maxlen) {
-      for(size_t i=0; i<maxlen; i+=2)
-      {
-        std::vector<POINT_T>::at(i).setX(array[i]);
-        std::vector<POINT_T>::at(i+1).setY(array[i+1]);
+    PointSet(const TYPE *array, const size_t maxlen) : super(maxlen) {
+      for(size_t i=0; i < maxlen; i+=2) {
+        super::at(i).setX(array[i]);
+        super::at(i+1).setY(array[i+1]);
       }
     }
     
     bool checkIndependent() {
       bool check = true;
-      for(int i = 0; i < std::vector<POINT_T>::size(); i++) {
-        for(int j = i; j < std::vector<POINT_T>::size(); j++) {
-          if(!(i==j) && (std::vector<POINT_T>::at(i) == std::vector<POINT_T>::at(j))) {
-            std::cerr << "ERROR : GRID-LAYOUT FAILED." << std::endl;
-            std::cerr << i << " : " << std::vector<POINT_T>::at(i) << " | "
-                      << j << " : " << std::vector<POINT_T>::at(j) << std::endl;
+      for(size_t i = 0; i < super::size(); i++) {
+        for(size_t j = i; j < super::size(); j++) {
+          if(!(i==j) && (super::at(i) == super::at(j))) {
+            std::cerr << "CHECK-INDEPENDENT ERROR : NO GRID-LAYOUTED." << std::endl;
+            std::cerr << i << " : " << super::at(i) << " | "
+                      << j << " : " << super::at(j) << std::endl;
             check = false;
           }
         }
@@ -70,8 +70,8 @@ namespace gridlayout {
     }
     
     PointSet &operator=(PointSet &set) {
-      for(int i=0; i<std::vector<POINT_T>::size(); ++i) {
-        std::vector<POINT_T>::at(i) = set[i];
+      for(size_t i=0; i < super::size(); ++i) {
+        super::at(i) = set[i];
       }
       return *this;
     }

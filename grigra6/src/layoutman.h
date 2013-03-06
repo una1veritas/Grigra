@@ -13,10 +13,12 @@ using namespace gridlayout;
 namespace {
   template <typename TYPE>
   class GridLayoutMan {
+
+    // Internal Type
     typedef Point<TYPE> POINT_T;
     typedef PointSet<TYPE> PSET_T;
     typedef PointSequence<TYPE> PSEQ_T;
-    typedef std::vector< std::list< Point<int> > > RDIC_T;
+    typedef std::vector< std::list< Point<size_t> > > RDIC_T;
     enum DIRECTION_T {
       MISS = 0,
       RIGHT = 1,
@@ -29,9 +31,13 @@ namespace {
       DOUBLE = 2
     };
 
+    // Constant Value
+    static const size_t OUT_OF_INDEX = (size_t)-1;
+
+    // Field
     TYPE grid_size; 
 
-    int checkPointPair(int i, int j, PSEQ_T &x, PSEQ_T &y) {
+    SQUARE_T checkPointPair(size_t i, size_t j, PSEQ_T &x, PSEQ_T &y) {
       POINT_T &p = x.ref(i), &q = y.ref(j);
       if(p == q) {
         return SINGLE;
@@ -42,7 +48,7 @@ namespace {
       return NONE;
     }
     
-    bool checkMultiPoints(int i, PSEQ_T &s) {
+    bool checkMultiPoints(size_t i, PSEQ_T &s) {
       if(i+1 < s.size() && s.ref(i) == s.ref(i+1)) {
         return true;
       }
@@ -52,15 +58,15 @@ namespace {
       return false;
     }
     
-    int rewindMultiPoints(int i, PSEQ_T &s) {
+    size_t rewindMultiPoints(size_t i, PSEQ_T &s) {
       while(0 <= i-1 && s.ref(i) == s.ref(i-1)) {
         --i;
       }
       return i;
     }
     
-    int multiPointsLen(int i, PSEQ_T &s) {
-      int j = i;
+    size_t multiPointsLen(size_t i, PSEQ_T &s) {
+      size_t j = i;
       while(j+1 < s.size() && s.ref(i) == s.ref(j)) {
         ++j;
       }
@@ -76,7 +82,7 @@ namespace {
       TYPE prev, bias;
       prev = x.ref(0).getX();
       bias = 0;
-      for(int i=1; i<set.size(); ++i) {
+      for(size_t i=1; i<set.size(); ++i) {
         if(x.ref(i).getX() + bias <= prev) {
           bias += grid_size;
         }
@@ -85,7 +91,7 @@ namespace {
       }
       prev = y.ref(0).getY();
       bias = 0;
-      for(int i=1; i<set.size(); ++i) {
+      for(size_t i=1; i<set.size(); ++i) {
         if(y.ref(i).getY() + bias <= prev) {
           bias += grid_size;
         }
@@ -94,24 +100,24 @@ namespace {
       }
     }
     
-    int prevX(int ix, int iy, PSEQ_T &x, PSEQ_T &y) {
+    size_t prevX(size_t ix, size_t iy, PSEQ_T &x, PSEQ_T &y) {
       TYPE t = y.ref(iy).getY();
       TYPE u = y.ref(iy).getX();
       do {
         if(ix <= 0) {
-          return -1;
+          return OUT_OF_INDEX;
         }
       } while(t < x.ref(--ix).getY()
               || (t == x.ref(ix).getY() && u < x.ref(ix).getX()));
       return ix;
     }
     
-    int prevY(int ix, int iy, PSEQ_T &x, PSEQ_T &y) {
+    size_t prevY(size_t ix, size_t iy, PSEQ_T &x, PSEQ_T &y) {
       TYPE t = x.ref(ix).getX();
       TYPE u = x.ref(ix).getY();
       do {
         if(iy <= 0) {
-          return -1;
+          return OUT_OF_INDEX;
         }
       } while(t < y.ref(--iy).getX()
               || (t == y.ref(iy).getX() && u < y.ref(iy).getY()));
@@ -119,11 +125,11 @@ namespace {
     }
     
     void listCountRects(PSET_T &set, PSEQ_T &x, PSEQ_T &y) {
-      grid<int> cr(set.size());
+      grid<size_t> cr(set.size());
       RDIC_T rd(set.size());
-      int pi, pj, v;
-      for(unsigned int i=0; i<set.size(); ++i) {
-        for(unsigned int j=0; j<set.size(); ++j) {
+      size_t pi, v;
+      for(size_t i=0; i<set.size(); ++i) {
+        for(size_t j=0; j<set.size(); ++j) {
           if(i != rewindMultiPoints(i, x)) {
             continue;
           }
@@ -136,7 +142,7 @@ namespace {
           pi = prevX(i,j,x,y);
           pi = rewindMultiPoints(pi, x);
           v = pi < 0 ? 0 : cr.ref(pi, j);
-          rd[v+1].push_back(Point<int>(i,j));
+          rd[v+1].push_back(Point<size_t>(i,j));
           cr.ref(i,j) = v+1;
         }
       }
@@ -145,10 +151,8 @@ namespace {
     
     void calcTranslateTable(PSET_T &set, PSEQ_T &x, PSEQ_T &y, RDIC_T &rd) {
       grid<POINT_T> pt(set.size()), tt(set.size());
-      grid<int> dir(set.size());
-      int i, j, pi, pj;
-      bool multix, multiy;
-      TYPE mxlen, mylen;
+      grid<DIRECTION_T> dir(set.size());
+      size_t i, j, pi, pj;
       POINT_T rt, art, brt, a, b, pa, pb, ta, tb;
       for(RDIC_T::iterator u = rd.begin(); u != rd.end(); ++u) {
         for(RDIC_T::value_type::iterator v = u->begin(); v != u->end(); ++v) {
@@ -163,13 +167,13 @@ namespace {
           switch(checkPointPair(i,j,x,y)) {
             case SINGLE : {
               art = pi < 0 ? POINT_T(0,0) : x.ref(pi);
-              art = art.rightTop(pj < 0 ? POINT_T(0,0) : y.ref(pj));
+              art = art.rightTop(pj == OUT_OF_INDEX ? POINT_T(0,0) : y.ref(pj));
 
-              a = x.ref(i).trans(pi < 0 ? POINT_T(0,0) : x.ref(pi),
-                                 pj < 0 ? POINT_T(0,0) : y.ref(pj),
+              a = x.ref(i).trans(pi == OUT_OF_INDEX ? POINT_T(0,0) : x.ref(pi),
+                                 pj == OUT_OF_INDEX ? POINT_T(0,0) : y.ref(pj),
                                  grid_size);
               ta = rectPush(x.ref(i) + a + rectMultiPoints(multiPointsLen(i,x), grid_size), art)
-                 + (pi < 0 || pj < 0 ? POINT_T(0,0) : tt.ref(pi, pj)); 
+                 + (pi == OUT_OF_INDEX || pj == OUT_OF_INDEX ? POINT_T(0,0) : tt.ref(pi, pj)); 
               pa = a - art;
 
               tt.ref(i,j) = ta;
@@ -199,6 +203,9 @@ namespace {
                 dir.ref(i,j) = TOP;
               }
             } break;
+            case NONE:
+              std::cerr << "MISS!." << std::endl;
+              break;
           }
         }
       }
@@ -206,10 +213,10 @@ namespace {
       applyLayout(set,x,y,tt,pt,dir);
     }
 
-    void applyTranslate(PSET_T &tmp, std::list<int> &ap, PSEQ_T &s, int i, POINT_T &trans) {
+    void applyTranslate(PSET_T &tmp, std::list<size_t> &ap, PSEQ_T &s, size_t i, POINT_T &trans) {
       tmp[s[i]] += trans;
       ap.push_front(s[i]);
-      int it = i+1, rb = 1, tb = 1, rc = 1, tc = 0, l = multiPointsLen(it,s);
+      size_t it = i+1, rb = 1, tb = 1, rc = 1, tc = 0, l = multiPointsLen(it,s);
       POINT_T rect = rectMultiPoints<TYPE>(l, grid_size);
       while((it - i <= l) && s.ref(i) == s.ref(it)) {
         tmp[s[it]] = POINT_T(rc * grid_size, tc * grid_size);
@@ -230,17 +237,14 @@ namespace {
       }
     }
     
-    void applyLayout(PSET_T &set, PSEQ_T &x, PSEQ_T &y, grid<POINT_T> &tt, grid<POINT_T> &pt, grid<int> &dir) {
-      bool multix, multiy;
-      int ix = set.size()-1, iy = set.size()-1, px = 0, py = 0;
+    void applyLayout(PSET_T &set, PSEQ_T &x, PSEQ_T &y, grid<POINT_T> &tt, grid<POINT_T> &pt, grid<DIRECTION_T> &dir) {
+      size_t ix = set.size()-1, iy = set.size()-1, px = 0, py = 0;
       POINT_T trans, maximum = tt.ref(ix, iy);
       PSET_T tmp(set);
-      std::list<int> ap;
+      std::list<size_t> ap;
 
       // Calc Rectangle List.
       while(ix >= 0 && iy >= 0) {
-        multix = checkMultiPoints(ix, x);
-        multiy = checkMultiPoints(iy, y);
         ix = rewindMultiPoints(ix, x);
         iy = rewindMultiPoints(iy, y);
         if(!dir.ref(ix,iy)) {
@@ -269,12 +273,15 @@ namespace {
               iy=py;
             }
           } break;
+          case NONE:
+              std::cerr << "MISS!." << std::endl;
+            break;
         }
       }
 
       // Apply Layout
       POINT_T rt(0, 0);
-      for(typename std::list<int>::iterator i = ap.begin();
+      for(typename std::list<size_t>::iterator i = ap.begin();
           i != ap.end();)
       {
         tmp[*i] += rt;
@@ -297,29 +304,29 @@ namespace {
     void foldLayout(PSET_T &set) {
       PSEQ_T x(set, true), y(set, false);
       //undiplicate(set, x, y);
-      for(int i=1; i<x.size(); ++i)
+      for(size_t i=1; i<x.size(); ++i)
       {
         if( (x.ref(i).getX() == x.ref(i-1).getX() + grid_size) &&
             (x.ref(i).getY() > x.ref(i-1).getY()) )
         {
-          for(int j=i; j<x.size(); ++j) {
+          for(size_t j=i; j<x.size(); ++j) {
             x.ref(j) += POINT_T(-grid_size, 0);
           }
         }
       }
-      for(int i=1; i<y.size(); ++i)
+      for(size_t i=1; i<y.size(); ++i)
       {
         if( (y.ref(i).getY() == y.ref(i-1).getY() + grid_size) &&
             (y.ref(i).getX() > y.ref(i-1).getX()) )
         {
-          for(int j=i; j<y.size(); ++j) {
+          for(size_t j=i; j<y.size(); ++j) {
             y.ref(j) += POINT_T(0, -grid_size);
           }
         }
       }
     }
   public:
-    GridLayoutMan(int grid_size) : grid_size(grid_size) {}
+    GridLayoutMan(size_t grid_size) : grid_size(grid_size) {}
     ~GridLayoutMan() {}
     
     PSET_T &match(PSET_T &p) {
@@ -330,7 +337,7 @@ namespace {
     }
     
     bool checkMatch(PSET_T &p) {
-      for(int i=0; i<p.size(); ++i) {
+      for(size_t i=0; i<p.size(); ++i) {
         if(p[i].getX() % grid_size != 0 || p[i].getY() % grid_size != 0) {
           return false;
         }

@@ -16,6 +16,7 @@
 #include <functional>
 #include <cmath>
 #include <list>
+#include <limits>
 
 template <typename TYPE>
 TYPE modulo(TYPE a, TYPE b) {

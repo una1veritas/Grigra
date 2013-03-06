@@ -16,12 +16,10 @@ class compare_XY {
   PointSet<TYPE> &set;
 public:
   compare_XY(PointSet<TYPE> &set) : set(set) {}
-    
   bool operator ()(const TYPE &a, const TYPE &b) const {
-    if(set[a].getX() == set[b].getX()) {
-      return set[a].getY() < set[b].getY();
-    }
-    return set[a].getX() < set[b].getX();
+    return set[a].getX() == set[b].getX()
+             ? set[a].getY() < set[b].getY()
+             : set[a].getX() < set[b].getX();
   }
 };
 
@@ -30,49 +28,49 @@ class compare_YX {
   PointSet<TYPE> &set;
 public:
   compare_YX(PointSet<TYPE> &set) : set(set) {}
-    
   bool operator ()(const TYPE &a, const TYPE &b) const {
-    if(set[a].getY() == set[b].getY()) {
-      return set[a].getX() < set[b].getX();
-    }
-    return set[a].getY() < set[b].getY();
+    return set[a].getY() == set[b].getY()
+             ? set[a].getX() < set[b].getX()
+             : set[a].getY() < set[b].getY();
   }
 };
 
 template<typename TYPE>
-class PointSequence : public std::vector<int> {
-  typedef typename std::vector<int>::iterator iterator;
+class PointSequence : public std::vector<size_t> {
+
+  // Internal Type
+  typedef std::vector<size_t> super;
+  typedef typename super::iterator iterator;
+
+  // Field
   PointSet<TYPE> &set;
+
 public:
   ~PointSequence() {}
   
-  PointSequence(PointSet<TYPE> &set, bool sortx)
-  : std::vector<int>(set.size()), set(set) {
-    int j=0;
-    for(iterator i=std::vector<int>::begin(); i!=std::vector<int>::end(); ++i) {
+  PointSequence(PointSet<TYPE> &set, bool sortx) : super(set.size()), set(set) {
+    size_t j=0;
+    for(iterator i = super::begin(); i != super::end(); ++i) {
       *i = j++;
     }
-    
+
     if(sortx) {
-      std::sort(std::vector<int>::begin(),
-                std::vector<int>::end(),
-                compare_XY<TYPE>(set));
+      std::sort(super::begin(), super::end(), compare_XY<TYPE>(set));
     } else {
-      std::sort(std::vector<int>::begin(),
-                std::vector<int>::end(),
-                compare_YX<TYPE>(set));
+      std::sort(super::begin(), super::end(), compare_YX<TYPE>(set));
     }
   }
   
-  Point<TYPE> &ref(int i) {
+  Point<TYPE> &ref(size_t i) {
     return set.at(at(i));
   }
   
   void print(std::ostream &out) {
-    for(iterator i=std::vector<int>::begin(); i!=std::vector<int>::end(); ++i) {
+    for(iterator i = super::begin(); i != super::end(); ++i) {
       out << *i << " : " << set[*i] << std::endl;
     }
   }
+
 };
 
 template<typename TYPE>
@@ -83,27 +81,33 @@ std::ostream &operator <<(std::ostream &out, PointSequence<TYPE> &p) {
 
 template <typename TYPE>
 class grid : public std::vector<TYPE> {
-  typedef typename std::vector<TYPE>::iterator iterator;
   
-  int grid_size;
+  // Internal Type
+  typedef std::vector<TYPE> super;
+  typedef typename super::iterator iterator;
+  
+  // Field
+  size_t width;
+
 public:
-  grid() : std::vector<TYPE>(), grid_size(0) {}
+  ~grid() {}
+
+  grid() : super(), width(0) {}
   
-  grid(int size) : std::vector<TYPE>(size*size), grid_size(size) {}
+  grid(size_t size) : super(size * size), width(size) {}
   
-  TYPE &ref(int x, int y) {
-    return std::vector<TYPE>::at(x + y * grid_size);
+  TYPE &ref(size_t x, size_t y) {
+    return super::at(x + y * width);
   }
   
   void print(std::ostream &out) {
-    int j=0;
-    for(iterator i=std::vector<TYPE>::begin(); i!=std::vector<TYPE>::end(); i++) {
+    size_t j=0;
+    for(iterator i = super::begin(); i != super::end(); i++) {
       out << " " << *i << "|";
-      if(++j % grid_size == 0) {
-        out << std::endl;
-      }
+      if(++j % width == 0) out << std::endl;
     }
   }
+
 };
 
 template<typename TYPE>
