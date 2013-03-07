@@ -20,3 +20,6 @@
 *.aux
 *.log
 *.dvi
+
+.metadata
+*.mk
