@@ -39,6 +39,8 @@ namespace {
 
     SQUARE_T checkPointPair(size_t i, size_t j, PSEQ_T &x, PSEQ_T &y) {
       POINT_T &p = x.ref(i), &q = y.ref(j);
+      if(i == OUT_OF_INDEX) return NONE;
+      if(j == OUT_OF_INDEX) return NONE;
       if(p == q) {
         return SINGLE;
       }
@@ -49,17 +51,19 @@ namespace {
     }
     
     bool checkMultiPoints(size_t i, PSEQ_T &s) {
+      if(i == OUT_OF_INDEX) return false;
       if(i+1 < s.size() && s.ref(i) == s.ref(i+1)) {
         return true;
       }
-      if(0 <= i-1 && s.ref(i) == s.ref(i-1)) {
+      if(0 < i && s.ref(i) == s.ref(i-1)) {
         return true;
       }
       return false;
     }
     
     size_t rewindMultiPoints(size_t i, PSEQ_T &s) {
-      while(0 <= i-1 && s.ref(i) == s.ref(i-1)) {
+      if(i == OUT_OF_INDEX) return i;
+      while(0 < i && s.ref(i) == s.ref(i-1)) {
         --i;
       }
       return i;
@@ -67,6 +71,7 @@ namespace {
     
     size_t multiPointsLen(size_t i, PSEQ_T &s) {
       size_t j = i;
+      if(i == OUT_OF_INDEX) return i;
       while(j+1 < s.size() && s.ref(i) == s.ref(j)) {
         ++j;
       }
@@ -141,7 +146,7 @@ namespace {
           }
           pi = prevX(i,j,x,y);
           pi = rewindMultiPoints(pi, x);
-          v = pi < 0 ? 0 : cr.ref(pi, j);
+          v = pi == OUT_OF_INDEX ? 0 : cr.ref(pi, j);
           rd[v+1].push_back(Point<size_t>(i,j));
           cr.ref(i,j) = v+1;
         }
@@ -166,7 +171,7 @@ namespace {
           pj = rewindMultiPoints(pj, y);
           switch(checkPointPair(i,j,x,y)) {
             case SINGLE : {
-              art = pi < 0 ? POINT_T(0,0) : x.ref(pi);
+              art = pi == OUT_OF_INDEX ? POINT_T(0,0) : x.ref(pi);
               art = art.rightTop(pj == OUT_OF_INDEX ? POINT_T(0,0) : y.ref(pj));
 
               a = x.ref(i).trans(pi == OUT_OF_INDEX ? POINT_T(0,0) : x.ref(pi),
@@ -244,7 +249,7 @@ namespace {
       std::list<size_t> ap;
 
       // Calc Rectangle List.
-      while(ix >= 0 && iy >= 0) {
+      while(ix != OUT_OF_INDEX && iy != OUT_OF_INDEX) {
         ix = rewindMultiPoints(ix, x);
         iy = rewindMultiPoints(iy, y);
         if(!dir.ref(ix,iy)) {

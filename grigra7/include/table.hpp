@@ -1,28 +1,27 @@
 #ifndef TABLE_HPP
 #define TABLE_HPP
 
-#include "point.h"
+#include "point.hpp"
 
-// Index List
-struct ilist {
-  size_t *dat, length;
+// 添え字配列
+typedef std::vector<size_t> ilist;
+void init_ilist(ilist &ilst, pset &set);
+void sort_xy(ilist &ilst, pset &set);
+void sort_yx(ilist &ilst, pset &set);
 
-  ilist(pset &set);
-  ~ilist();
-
-  void sort_xy();
-  void sort_yx();
-
-  size_t ref(size_t i);
-};
+// 添え字外を示す定数
+const size_t OUT_OF_INDEX = (size_t)-1;
+inline bool is_right_index(size_t i) { return i != OUT_OF_INDEX; }
 
 // Translation Table
-struct ttable {
-  point *dat;
+class ttable {
   size_t length;
-
+  point *dat;
+public:
   ttable(size_t size);
   ~ttable();
+
+  size_t size();
 
   void fill(point p);
   point &ref(size_t i, size_t j);

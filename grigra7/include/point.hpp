@@ -9,22 +9,31 @@
 #include <stdint.h>
 
 #include <cmath>
-#include <set>
+#include <vector>
+#include <cstdlib>
 
-typedef int32_t elem_t;
+// 点の成分の型
+typedef int32_t num_t;
 
+// 点クラス
 struct point {
-  elem_t x, y;
+  num_t x, y;
 
   point();
-  point(elem_t x, elem_t y);
+  point(num_t x, num_t y);
   point(const point &p);
   ~point();
 
   point right_top(point p);
-  elem_t length() const;
+  num_t length() const;
+
+  // xy, yx方向の比較演算(<)
+  bool lt_xy(point &q);
+  bool lt_yx(point &q);
 
   bool operator == (point &p);
+  bool operator != (point &p);
+
   point &operator = (point &p);
   point operator + (point p);
   point operator - (point p);
@@ -32,7 +41,8 @@ struct point {
   point &operator -= (point p);
 };
 
-typedef std::set<point> pset;
+// 点集合クラス
+typedef std::vector<point> pset;
 
 #endif
 

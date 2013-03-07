@@ -1,38 +1,64 @@
 #include "point.hpp"
 
-point::point() {
+point::point() : x(0), y(0) {
 }
 
-point::point(elem_t x, elem_t y) {
+point::point(num_t x, num_t y) : x(x), y(y) {
 }
 
-point::point(const point &p) {
+point::point(const point &p) : x(p.x), y(p.y) {
 }
 
-~point::point() {
+point::~point() {
 }
 
-point point::rigt_top(point p) {
+point point::right_top(point p) {
+  return point(std::max(x, p.x), std::max(y, p.y));
 }
 
-elem_t point::length() const {
+num_t point::length() const {
+  return std::abs(x) + std::abs(y);
+}
+
+bool point::lt_xy(point &p) {
+  return x < p.x || ( x == p.x && y < p.y );
+}
+
+bool point::lt_yx(point &p) {
+  return y < p.y || ( y == p.y && x < p.x );
 }
 
 bool point::operator == (point &p) {
+  return x == p.x && y == p.y;
+}
+
+bool point::operator != (point &p) {
+  return !(*this == p);
 }
 
 point &point::operator = (point &p) {
+  x = p.x;
+  y = p.y;
+  return *this;
 }
 
 point point::operator + (point p) {
+  return point(x + p.x, y + p.y);
 }
 
 point point::operator - (point p) {
+  return point(x - p.x, y - p.y);
 }
 
 point &point::operator += (point p) {
+  x += p.x;
+  y += p.y;
+  return *this;
 }
 
 point &point::operator -= (point p) {
+  x -= p.x;
+  y -= p.y;
+  return *this;
 }
 
