@@ -1,4 +1,4 @@
-CPPOPTS = -O2 -g -Wall
+CPPOPTS = -g -Wall -O2
 OBJS = main layout
 
 .PHONY : all
