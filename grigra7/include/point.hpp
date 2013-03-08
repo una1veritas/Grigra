@@ -9,8 +9,8 @@
 #include <stdint.h>
 
 #include <cmath>
-#include <vector>
 #include <cstdlib>
+#include <vector>
 
 // 点の成分の型
 typedef int32_t num_t;
@@ -34,7 +34,7 @@ struct point {
   bool operator == (point &p);
   bool operator != (point &p);
 
-  point &operator = (point &p);
+  point &operator = (point p);
   point operator + (point p);
   point operator - (point p);
   point &operator += (point p);
