@@ -3,13 +3,33 @@
 #include "printer.hpp"
 #include "layout.hpp"
 
+#include <iostream>
+#include <cstdlib>
+
 // Entry Point.
 int main(int argc, char **argv) {
   num_t g = 0, e = 0;
   pset set;
-  
+
+  if(argc < 3) {
+    std::cerr << "Usage : *** [g] [e] < IN > OUT" << std::endl;
+    return 0;
+  }
+
+  g = std::strtoul(argv[1], 0, 0);
+  e = std::strtoul(argv[2], 0, 0);
+
+  std::cerr << "GridLayout - start!  grid-size : " << g << " , exp10 : " << e << std::endl;
+
   read_pset(set, std::cin, e);
+
+  std::cerr << "Read InputPointSet ... Done." << std::endl;
+  std::cerr << " size : " << set.size() << std::endl;
+
   layout(set, g, e);
+
+  std::cerr << "Gridlayout ... Done." << std::endl;
+  std::cerr << "Write PointSet - start!" << std::endl;
 
   // 出力時のデリミタ変更
   // 空白が嫌なときに使ってください

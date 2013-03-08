@@ -293,6 +293,7 @@ namespace {
         POINT_T o = tmp[*i];
         int n = 1, pi = *i;
         ++i;
+        if(i == ap.end()) break;
         while(set[pi] == set[*i]) {
           tmp[*i] += o;
           ++n;

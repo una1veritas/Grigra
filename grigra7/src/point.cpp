@@ -36,7 +36,7 @@ bool point::operator != (point &p) {
   return !(*this == p);
 }
 
-point &point::operator = (point &p) {
+point &point::operator = (point p) {
   x = p.x;
   y = p.y;
   return *this;
