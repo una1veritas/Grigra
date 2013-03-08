@@ -44,6 +44,8 @@ namespace gridlayout {
     PointSetProxy(const TYPE *pset, const size_t length);
     ~PointSetProxy();
 
+    void readfile(const char fname[]);
+    void readfile(std::istream & fin);
     size_t length();
 
     void print();

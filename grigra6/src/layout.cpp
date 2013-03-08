@@ -1,7 +1,7 @@
 
 /* <encode : utf-8>
 
-  グリッドレイアウトアルゴリズムの実装。
+  繧ｰ繝ｪ繝�ラ繝ｬ繧､繧｢繧ｦ繝医い繝ｫ繧ｴ繝ｪ繧ｺ繝��螳溯｣��
 
 */
 
@@ -14,21 +14,32 @@ gridlayout::PointSetProxy<TYPE>::PointSetProxy() : set_p(__null) {
 
 template<typename TYPE>
 gridlayout::PointSetProxy<TYPE>::PointSetProxy(const char *filename) : set_p(__null) {
-  std::ifstream fin(filename);
-  if(fin.is_open()) {
-    this->set_p = new gridlayout::PointSet<TYPE>(fin);
-  }
+	readfile(filename);
+}
+
+template<typename TYPE>
+void gridlayout::PointSetProxy<TYPE>::readfile(const char fname[]) {
+	std::ifstream fin(fname);
+	if(fin.is_open()) {
+		set_p = new gridlayout::PointSet<TYPE>(fin);
+	}
+}
+
+template<typename TYPE>
+void gridlayout::PointSetProxy<TYPE>::readfile(std::istream & fin) {
+	set_p = new gridlayout::PointSet<TYPE>(fin);
 }
 
 template<typename TYPE>
 gridlayout::PointSetProxy<TYPE>::PointSetProxy(std::istream &pIn) : set_p(__null) {
-  this->set_p = new gridlayout::PointSet<TYPE>(pIn);
+	readfile(pIn);
 }
 
 template<typename TYPE>
 gridlayout::PointSetProxy<TYPE>::PointSetProxy(const TYPE *pset, const size_t length) : set_p(__null) {
   this->set_p = new gridlayout::PointSet<TYPE>(pset, length);
 }
+
 
 template<typename TYPE>
 gridlayout::PointSetProxy<TYPE>::~PointSetProxy() {

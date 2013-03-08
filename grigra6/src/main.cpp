@@ -7,6 +7,7 @@
 
 int main(int argc, char **argv) {
   using namespace gridlayout;
+  PointSetProxy<int> pset;
 
   int g = 0;
 
@@ -15,12 +16,16 @@ int main(int argc, char **argv) {
     return 0;
   }
   g = atoi(argv[1]);
-
-  PointSetProxy<int> pset(std::cin);
+  if (argc == 2 ) {
+	  pset.readfile(std::cin);
+  } else {
+	  pset.readfile(argv[2]);
+  }
   
   clock_t clk = clock();
   GridLayout<int>(&pset, g);
   clk = clock() - clk;
+  std::cout.flush();
   std::cerr << "TIME : " << clk / (double)CLOCKS_PER_SEC << std::endl;
   
   pset.print(std::cout);
