@@ -31,8 +31,20 @@ size_t prev_yx(size_t i, size_t j, ilist &xy, ilist &yx, pset &set);
 // sumt : rtがグリッド配置されるまでの編集距離
 point trans(point p, point rt, num_t g, point sumt);
 
+// 矩形編集距離の計算
+point sum_transrect(point p, size_t pi, size_t pj, ttable &tt, size_t g, ilist &xy, ilist &yx, pset &set, point *pout = NULL);
+
 // 編集距離テーブルの各々のセルに対する計算
 void per_tt_cell(ttable &tt, size_t i, size_t j, ilist &xy, ilist &yx, num_t g, pset &set);
+
+// 点毎の処理
+void per_expand_point(pset &set, ilist &ex, size_t i, ilist &s, point trans);
+
+// 拡張点列の計算
+void expand_ilist(ilist &ex, ttable &tt, ttable &pt, size_t g, ilist &xy, ilist &yx, pset &set);
+
+// グリッドへの再配置
+void trans_grid(pset &set, ilist &ex, ttable &pt);
 
 // グリッドレイアウトの適用(setが変更されます)
 // set : 入力および出力点集合オブジェクト
