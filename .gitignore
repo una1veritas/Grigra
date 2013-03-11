@@ -24,3 +24,6 @@
 .metadata
 *.mk
 *.pref
+
+#Mac OS X
+.DS_Store
