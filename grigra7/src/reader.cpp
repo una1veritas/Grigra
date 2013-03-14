@@ -19,6 +19,7 @@ void read_pset(pset &set, std::istream &in, num_t exp) {
       p.y = safe_read(in, exp);
       set.push_back(p);
     } catch(...) {
+      std::cerr << "[catch] : Reader Exception." << std::endl;
       break;
     }
   }

@@ -1,5 +1,7 @@
 #include "layout.hpp"
 
+#include <iterator>
+#include <algorithm>
 #include <iostream>
 
 bool is_multipoint_leader(size_t i, ilist &a, pset &set) {
@@ -16,8 +18,14 @@ size_t rewind_multipoint(size_t i, ilist &a, pset &set) {
   return i;
 }
 
+bool is_end_of_multipoint(size_t i, ilist &a, pset &set) {
+  if(!is_right_index(i)) return true;
+  if(i+1 == a.size()) return true;
+  return set[a[i]] != set[a[i+1]];
+}
+
 size_t size_corner(point &p, point &q) {
-  return p == q ? 1 : p.x >= q.x && p.y <= q.y ? 2 : 0;
+  return (p == q) ? 1 : ( (p.x >= q.x && p.y <= q.y) ? 2 : 0);
 }
 
 size_t prev_xy(size_t i, size_t j, ilist &xy, ilist &yx, pset &set) {
@@ -60,7 +68,7 @@ inline num_t ifswap(num_t x, num_t a, num_t b) {
 
 point trans(point p, point rt, num_t g, point sumt) {
   point t = p - rt;
-  
+
   // 各軸毎の隣接するグリッド線2本との距離を求める
   num_t ux = calc_u(t.x, g), vx = calc_v(t.x, ux, g);
   num_t uy = calc_u(t.y, g), vy = calc_v(t.y, uy, g);
@@ -71,15 +79,19 @@ point trans(point p, point rt, num_t g, point sumt) {
 
   // 右上角の内側に突入する編集を反転させる
   point tmp = t + r;
-  if(tmp.x == 0)
+  if(tmp.x == 0 && tmp.y == 0) {
     r.x = t.x != 0 ? ifswap(r.x, ux, vx) : g;
-  else if(tmp.y == 0)
     r.y = t.y != 0 ? ifswap(r.y, uy, vy) : g;
-  else if(tmp.x < 0 && tmp.y < 0) {
-    if(t.x >= 0)
+  } else if(tmp.x == 0) {
+    r.x = t.x != 0 ? ifswap(r.x, ux, vx) : g;
+  } else if(tmp.y == 0) {
+    r.y = t.y != 0 ? ifswap(r.y, uy, vy) : g;
+  } else if(tmp.x < 0 && tmp.y < 0) {
+    if(t.x >= 0) {
       r.x = ifswap(r.x, ux, vx);
-    else if(t.y >= 0)
+    } else if(t.y >= 0) {
       r.y = ifswap(r.y, uy, vy);
+    }
   }
 
   // 編集距離を返す
@@ -92,6 +104,7 @@ point sum_transrect(point p, size_t pi, size_t pj, ttable &tt, size_t g, ilist &
   point rt = r.right_top(t);
   point pt = is_right_index(pi) && is_right_index(pj) ? tt.ref(pi, pj) : point();
   point a = trans(p, rt, g, pt);
+  
   if(pout) *pout = a - rt;
   return rt.right_top(p + a) - rt + pt;
 }
@@ -104,8 +117,8 @@ void per_tt_cell(ttable &tt, ttable &pt, size_t i, size_t j, ilist &xy, ilist &y
   if(!is_multipoint_leader(j, yx, set)) return;
 
   point &p = set[xy[i]], &q = set[yx[j]];
-  size_t pi = prev_xy(i,j,xy,yx, set);
-  size_t pj = prev_yx(i,j,xy,yx, set);
+  size_t pi = prev_xy(i, j, xy, yx, set);
+  size_t pj = prev_yx(i, j, xy, yx, set);
   point ta, tb, pa, pb;
   switch(size_corner(p, q)) {
     case 0: // イリーガルな組み合わせはスキップする
@@ -129,51 +142,80 @@ void per_tt_cell(ttable &tt, ttable &pt, size_t i, size_t j, ilist &xy, ilist &y
   }
 }
 
-void per_expand_point(pset &set, ilist &ex, size_t i, ilist &s, point trans) {
-  set[s[i]] += trans;
+void per_expand_point(pset &set, ilist &ex, pset &expt, size_t i, ilist &s, point trans) {
+  for( ; !is_end_of_multipoint(i, s, set); ++i) {
+    ex.push_back(s[i]);
+    expt.push_back(trans);
+  }
   ex.push_back(s[i]);
-
-  // 重複点の処理
+  expt.push_back(trans);
 }
 
-void expand_ilist(ilist &ex, ttable &tt, ttable &pt, size_t g, ilist &xy, ilist &yx, pset &set) {
-  size_t i = xy.size() - 1, j = yx.size() - 1;
+void expand_ilist(ilist &ex, pset &expt, ttable &tt, ttable &pt, size_t g, ilist &xy, ilist &yx, pset &set) {
+  pset tmp = set;
+  size_t i = rewind_multipoint(xy.size() - 1, xy, tmp);
+  size_t j = rewind_multipoint(yx.size() - 1, yx, tmp);
   while(is_right_index(i) && is_right_index(j)) {
-    std::cerr << i << " " << j << std::endl;
-    point p = set[xy[i]], q = set[yx[j]];
-    size_t pi = prev_xy(i, j, xy, yx, set);
-    size_t pj = prev_yx(i, j, xy, yx, set);
+    point &p = tmp[xy[i]], &q = tmp[yx[j]];
+    size_t pi = prev_xy(i, j, xy, yx, tmp);
+    size_t pj = prev_yx(i, j, xy, yx, tmp);
     switch(size_corner(p, q)) {
       case 0: // 例外なセル参照
         std::cerr << "Error : Illegal Access Translation Table." << std::endl;
+        std::cerr << i << " " << j << std::endl;
         return;
       case 1:
-        per_expand_point(set, ex, i, xy, pt.ref(i, j));
+        per_expand_point(set, ex, expt, i, xy, pt.ref(i, j));
         i = pi; j = pj;
         break;
       case 2:
         // 編集距離の再計算を行い、どちらの選択を行ったかを判定する
-        if( sum_transrect(p, pi, j, tt, g, xy, yx, set).length()
-            < sum_transrect(q, i, pj, tt, g, xy, yx, set).length() )
+        if( sum_transrect(p, pi, j, tt, g, xy, yx, tmp).length()
+            < sum_transrect(q, i, pj, tt, g, xy, yx, tmp).length() )
         {
-          per_expand_point(set, ex, i, xy, pt.ref(i, j));
+          per_expand_point(set, ex, expt, i, xy, pt.ref(i, j));
           i = pi;
         } else {
-          per_expand_point(set, ex, j, yx, pt.ref(i, j));
+          per_expand_point(set, ex, expt, j, yx, pt.ref(i, j));
           j = pj;
         }
         break;
     }
   }
+
+  std::reverse(ex.begin(), ex.end());
+  std::reverse(expt.begin(), expt.end());
 }
 
-void trans_grid(pset &set, ilist &ex, ttable &pt) {
-  point rt;
-  for(size_t i = ex.size()-1; i >= 0; --i) {
-    set[ex[i]] += rt;
-    rt = rt.right_top(set[ex[i]]);
+void trans_grid(pset &set, ilist &ex, pset &expt, num_t g) {
+  point rt(0, 0);
+  for(size_t i = 0; i < ex.size(); ++i) {
 
-    // 重複点の処理
+    // 重複点の個数を計算
+    size_t l = i;
+    for( ; !is_end_of_multipoint(l, ex, set); ++l);
+
+    set[ex[i]] += rt + expt[i];
+    point o = set[ex[i]];
+    
+    num_t dx = 1, dy = 0;
+    while(i < l) {
+      ++i;
+      set[ex[i]] += rt + point(dx * g, dy * g) + expt[i];
+
+      // 配置を設計する階差数列
+      if(dx > dy) {
+        dy += 1;
+      } else if(dx >= 0) {
+        dx -= 1;
+      } else {
+        dx = dy + 1;
+        dy = 0;
+      }
+      o = o.right_top(set[ex[i]]);
+    }
+    
+    rt = rt.right_top(o);
   }
 }
 
@@ -198,12 +240,15 @@ void layout(pset &set, num_t g, num_t exp) {
   // 拡張点列の生成
   std::cerr << "-expand-list." << std::endl;
   ilist ex;
-  expand_ilist(ex, tt, pt, g, xy, yx, set);
+  pset expt;
+  ex.reserve(set.size());
+  expt.reserve(set.size());
+  expand_ilist(ex, expt, tt, pt, g, xy, yx, set);
   std::cerr << "done." << std::endl;
 
   // 点のグリッド上への再配置
   std::cerr << "-trans-grid." << std::endl;
-  trans_grid(set, ex, pt);
+  trans_grid(set, ex, expt, g);
   std::cerr << "done." << std::endl;
 }
 

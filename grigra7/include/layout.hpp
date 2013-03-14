@@ -8,7 +8,11 @@
 // 成分に重複を持つ点は代表点 ( ソート列に対し最も前任のもの ) である1点とする
 bool is_multipoint_leader(size_t i, ilist &a, pset &set);
 
+// 重複点の代表点まで戻る
 size_t rewind_multipoint(size_t i, ilist &a, pset &set);
+
+// 次の点が重複点か調べる
+bool is_end_of_multipoint(size_t i, ilist &a, pset &set);
 
 // 右上角となる添え字組の実際の点数
 // 0 : 無効な添え字の組み合わせ
@@ -41,10 +45,10 @@ void per_tt_cell(ttable &tt, size_t i, size_t j, ilist &xy, ilist &yx, num_t g, 
 void per_expand_point(pset &set, ilist &ex, size_t i, ilist &s, point trans);
 
 // 拡張点列の計算
-void expand_ilist(ilist &ex, ttable &tt, ttable &pt, size_t g, ilist &xy, ilist &yx, pset &set);
+void expand_ilist(ilist &ex, pset &expt, ttable &tt, ttable &pt, size_t g, ilist &xy, ilist &yx, pset &set);
 
 // グリッドへの再配置
-void trans_grid(pset &set, ilist &ex, ttable &pt);
+void trans_grid(pset &set, ilist &ex, pset &expt, num_t g);
 
 // グリッドレイアウトの適用(setが変更されます)
 // set : 入力および出力点集合オブジェクト
