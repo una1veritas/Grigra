@@ -18,6 +18,7 @@ point point::right_top(point p) {
 
 num_t point::length() const {
   return std::abs(x) + std::abs(y);
+//  return std::abs(x) + std::abs(y);
 }
 
 bool point::lt_xy(point &p) {
