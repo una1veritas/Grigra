@@ -4,6 +4,7 @@
 #include "layout.hpp"
 
 #include <iostream>
+#include <fstream>
 #include <cstdlib>
 
 // Entry Point.
@@ -13,6 +14,8 @@ int main(int argc, char **argv) {
 
   if(argc < 3) {
     std::cerr << "Usage : *** [g] [e] < IN > OUT" << std::endl;
+    std::cerr << "Usage : *** [g] [e] filename > OUT" << std::endl;
+    std::cerr << "Usage : *** [g] [e] filename out-filename" << std::endl;
     return 0;
   }
 
@@ -21,7 +24,16 @@ int main(int argc, char **argv) {
 
   std::cerr << "GridLayout - start!  grid-size : " << g << " , exp10 : " << e << std::endl;
 
-  read_pset(set, std::cin, e);
+  if(argc > 3) {
+    std::ifstream fin(argv[3]);
+    if(!fin.is_open()) {
+      std::cerr << "File not exit : " << argv[3] << std::endl;
+      return 0;
+    }
+    read_pset(set, fin, e);
+  } else {
+    read_pset(set, std::cin, e);
+  }
 
   std::cerr << "Read InputPointSet ... Done." << std::endl;
   std::cerr << " size : " << set.size() << std::endl;
@@ -29,13 +41,25 @@ int main(int argc, char **argv) {
   layout(set, g, e);
 
   std::cerr << "Gridlayout ... Done." << std::endl;
+
+  check_gridlayout_successed(set, g, std::cerr);
+
   std::cerr << "Write PointSet - start!" << std::endl;
 
   // 出力時のデリミタ変更
   // 空白が嫌なときに使ってください
   //pset_raw_delimiter = ",";
 
-  print_pset(set, std::cout, e);
+  if(argc > 4) {
+    std::ofstream fout(argv[4]);
+    if(!fout.is_open()) {
+      std::cerr << "File not exit : " << argv[4] << std::endl;
+      return 0;
+    }
+    print_pset(set, fout, e);
+  } else {
+    print_pset(set, std::cout, e);
+  }
 
   return 0;
 }
