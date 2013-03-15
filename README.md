@@ -62,8 +62,17 @@ thesis(SJIS)2
 ------
 ### Grigra6
     layout.exe gridsize [input-filename] < input > output
+* gridsizeは整数値で指定
+* input-filenameを省略した場合は、標準入力から読み込む
+* 出力は標準出力にされるので、必要であればリダイレクトする
 
 ### Grigra7
     bin/layout.exe gridsize fixed-point [input-filename] [output-filename]
-
+* gridsizeは整数値で指定
+* fixed-pointは入出力の数値が小数の場合、固定小数の桁数を指定する
+    * 0の場合は入力は整数値として扱われる
+* input-filenameを省略した場合は、標準入力から読み込む
+* output-filenameを省略した場合は、標準出力に書き出す
+* input-filenameを省略してoutput-filenameを与えることはできない
+    * いずれコマンドオプション化します
 
